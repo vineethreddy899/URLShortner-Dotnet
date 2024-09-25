@@ -1,5 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using URL_Shortner.ApplicationDbContext;
+using URL_Shortner.BusinessLogic;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -12,6 +13,8 @@ builder.Services.AddSwaggerGen();
 
 builder.Services.AddDbContext<UrlContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
+
+builder.Services.AddScoped<UrlService>();
 
 var app = builder.Build();
 

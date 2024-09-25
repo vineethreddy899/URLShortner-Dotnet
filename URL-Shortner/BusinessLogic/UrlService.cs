@@ -58,7 +58,7 @@ namespace URL_Shortner.BusinessLogic
                     .Select(s => s[random.Next(s.Length)]).ToArray());
             } while (_context.Urls.Any(u => u.ShortUrl == BaseUrl + shortUrl));
 
-            return BaseUrl + shortUrl;
+            return shortUrl;
         }
     }
 }

@@ -32,7 +32,7 @@ namespace URL_Shortner.Controllers
         }
 
         [HttpGet("{shortUrl}")]
-        public IActionResult GetOriginalUrl([FromRoute] string shortUrl)
+        public IActionResult GetOriginalUrl(string shortUrl)
         {
             var url = _urlService.GetUrlByShortUrl(shortUrl);
 
@@ -48,7 +48,7 @@ namespace URL_Shortner.Controllers
         }
 
         [HttpGet("{shortUrl}/clicks")]
-        public IActionResult GetClickCount([FromRoute] string shortUrl)
+        public IActionResult GetClickCount(string shortUrl)
         {
             var url = _urlService.GetUrlByShortUrl(shortUrl);
 
