@@ -1,5 +1,4 @@
 ﻿using Microsoft.EntityFrameworkCore;
-using System.Collections.Generic;
 using URL_Shortner.Models;
 
 namespace URL_Shortner.ApplicationDbContext
@@ -11,5 +10,13 @@ namespace URL_Shortner.ApplicationDbContext
         }
 
         public DbSet<Url> Urls { get; set; }
+
+        protected override void OnModelCreating(ModelBuilder modelBuilder)
+        {
+            // Enforce uniqueness of ShortUrl
+            modelBuilder.Entity<Url>()
+                .HasIndex(u => u.ShortUrl)
+                .IsUnique();
+        }
     }
 }

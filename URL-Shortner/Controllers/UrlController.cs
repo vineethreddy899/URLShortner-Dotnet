@@ -1,6 +1,5 @@
 ﻿using Microsoft.AspNetCore.Mvc;
-using URL_Shortner.ApplicationDbContext;
-using URL_Shortner.Models;
+using URL_Shortner.BusinessLogic;
 
 namespace URL_Shortner.Controllers
 {
@@ -8,59 +7,57 @@ namespace URL_Shortner.Controllers
     [Route("[controller]")]
     public class UrlController : ControllerBase
     {
-        private readonly UrlContext _context;
+        private readonly UrlService _urlService;
         private const string BaseUrl = "https://shortly/";
 
-        public UrlController(UrlContext context)
+        public UrlController(UrlService urlService)
         {
-            _context = context;
+            _urlService = urlService;
         }
 
-        [HttpPost("shortUrl")]
+        [HttpPost("shorten")]
         public IActionResult ShortenUrl([FromBody] string originalUrl)
         {
-            // Check if the original URL already exists
-            var existingUrl = _context.Urls.FirstOrDefault(u => u.OriginalUrl == originalUrl);
+            // Check if URL already exists
+            var existingUrl = _urlService.GetExistingUrl(originalUrl);
             if (existingUrl != null)
             {
                 return Ok(existingUrl.ShortUrl);
             }
 
-            // Generate a short URL
-            var shortUrl = GenerateShortUrl();
+            // Generate and save a new short URL
+            var newUrl = _urlService.SaveNewUrl(originalUrl);
 
-            // Save the original and short URL to the database
-            var url = new Url
-            {
-                OriginalUrl = originalUrl,
-                ShortUrl = BaseUrl + shortUrl
-            };
-            _context.Urls.Add(url);
-            _context.SaveChanges();
-
-            return Ok(url.ShortUrl);
+            return Ok(newUrl.ShortUrl);
         }
 
         [HttpGet("{shortUrl}")]
-        public IActionResult GetOriginalUrl(string shortUrl)
+        public IActionResult GetOriginalUrl([FromRoute] string shortUrl)
         {
-            var fullShortUrl = BaseUrl + shortUrl;
-            var url = _context.Urls.FirstOrDefault(u => u.ShortUrl == fullShortUrl);
+            var url = _urlService.GetUrlByShortUrl(shortUrl);
 
             if (url == null || url.OriginalUrl == null)
             {
-                return NotFound("URL not found.");
+                return NotFound("Short URL not found.");
             }
+
+            // Increment click count
+            _urlService.IncrementClickCount(url);
 
             return Ok(url.OriginalUrl);
         }
 
-        private string GenerateShortUrl()
+        [HttpGet("{shortUrl}/clicks")]
+        public IActionResult GetClickCount([FromRoute] string shortUrl)
         {
-            const string chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
-            var random = new Random();
-            return new string(Enumerable.Repeat(chars, 6)
-              .Select(s => s[random.Next(s.Length)]).ToArray());
+            var url = _urlService.GetUrlByShortUrl(shortUrl);
+
+            if (url == null)
+            {
+                return NotFound("Short URL not found.");
+            }
+
+            return Ok(new { ShortUrl = url.ShortUrl, ClickCount = url.ClickCount });
         }
     }
 }

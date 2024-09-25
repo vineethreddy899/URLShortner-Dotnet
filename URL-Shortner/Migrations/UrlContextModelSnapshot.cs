@@ -30,6 +30,9 @@ namespace URL_Shortner.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
+                    b.Property<int>("ClickCount")
+                        .HasColumnType("int");
+
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("datetime2");
 
@@ -37,9 +40,13 @@ namespace URL_Shortner.Migrations
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("ShortUrl")
-                        .HasColumnType("nvarchar(max)");
+                        .HasColumnType("nvarchar(450)");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("ShortUrl")
+                        .IsUnique()
+                        .HasFilter("[ShortUrl] IS NOT NULL");
 
                     b.ToTable("Urls");
                 });
