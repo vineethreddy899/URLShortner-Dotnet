@@ -4,14 +4,14 @@ namespace URL_Shortner.BusinessLogic
 {
     public interface IUrlService
     {
-        Url? GetExistingUrl(string originalUrl);
+        Task<Url?> GetExistingUrl(string originalUrl);
 
-        Url SaveNewUrl(string originalUrl);
+        Task<Url> SaveNewUrl(string originalUrl);
 
-        Url? GetUrlByShortUrl(string shortUrl);
+        Task<Url?> GetUrlByShortUrl(string shortUrl);
 
         void IncrementClickCount(Url url);
 
-        string GenerateUniqueShortUrl();
+        Task<string> GenerateUniqueShortUrl();
     }
 }

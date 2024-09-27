@@ -1,4 +1,5 @@
-﻿using URL_Shortner.ApplicationDbContext;
+﻿using Microsoft.EntityFrameworkCore;
+using URL_Shortner.ApplicationDbContext;
 using URL_Shortner.Models;
 
 namespace URL_Shortner.BusinessLogic
@@ -13,30 +14,30 @@ namespace URL_Shortner.BusinessLogic
             _context = context;
         }
 
-        public Url? GetExistingUrl(string originalUrl)
+        public async Task<Url?> GetExistingUrl(string originalUrl)
         {
-            return _context.Urls.FirstOrDefault(u => u.OriginalUrl == originalUrl);
+            return await _context.Urls.FirstOrDefaultAsync(u => u.OriginalUrl == originalUrl);
         }
 
-        public Url SaveNewUrl(string originalUrl)
+        public async Task<Url> SaveNewUrl(string originalUrl)
         {
             var shortUrl = GenerateUniqueShortUrl();
 
             var newUrl = new Url
             {
                 OriginalUrl = originalUrl,
-                ShortUrl = shortUrl
+                ShortUrl = shortUrl.Result
             };
 
-            _context.Urls.Add(newUrl);
+            await _context.Urls.AddAsync(newUrl);
             _context.SaveChanges();
 
             return newUrl;
         }
 
-        public Url? GetUrlByShortUrl(string shortUrl)
+        public async Task<Url?> GetUrlByShortUrl(string shortUrl)
         {
-            return _context.Urls.FirstOrDefault(u => u.ShortUrl == shortUrl);
+            return await _context.Urls.FirstOrDefaultAsync(u => u.ShortUrl == shortUrl);
         }
 
         public void IncrementClickCount(Url url)
@@ -45,7 +46,7 @@ namespace URL_Shortner.BusinessLogic
             _context.SaveChanges();
         }
 
-        public string GenerateUniqueShortUrl()
+        public async Task<string> GenerateUniqueShortUrl()
         {
             const string chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
             var random = new Random();
@@ -56,7 +57,7 @@ namespace URL_Shortner.BusinessLogic
             {
                 shortUrl = new string(Enumerable.Repeat(chars, 6)
                     .Select(s => s[random.Next(s.Length)]).ToArray());
-            } while (_context.Urls.Any(u => u.ShortUrl == BaseUrl + shortUrl));
+            } while (await _context.Urls.AnyAsync(u => u.ShortUrl == BaseUrl + shortUrl));
 
             return shortUrl;
         }
