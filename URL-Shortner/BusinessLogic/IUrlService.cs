@@ -12,6 +12,5 @@ namespace URL_Shortner.BusinessLogic
 
         void IncrementClickCount(Url url);
 
-        Task<string> GenerateUniqueShortUrl();
     }
 }
