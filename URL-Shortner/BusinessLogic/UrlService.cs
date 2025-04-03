@@ -10,7 +10,6 @@ namespace URL_Shortner.BusinessLogic
     {
         private readonly UrlContext _context;
         private const string BaseUrl = "https://shortly/";
-        private const string Base62Chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
 
         public UrlService(UrlContext context)
         {
@@ -51,18 +50,32 @@ namespace URL_Shortner.BusinessLogic
 
         private static string GenerateShortUrl(string originalUrl)
         {
+            // Add a salt (timestamp ensures uniqueness even for identical URLs)
+            string saltedUrl = originalUrl + DateTime.UtcNow.Ticks;
+
+            // Generate SHA-256 hash
             using (SHA256 sha256 = SHA256.Create())
             {
-                byte[] hashBytes = sha256.ComputeHash(Encoding.UTF8.GetBytes(originalUrl));
-                StringBuilder result = new StringBuilder();
+                byte[] hashBytes = sha256.ComputeHash(Encoding.UTF8.GetBytes(saltedUrl));
 
-                for (int i = 0; i < 6; i++)  // Take first 6 characters from Base62
-                {
-                    result.Append(Base62Chars[hashBytes[i] % 62]);
-                }
-
-                return BaseUrl + result.ToString();
+                // Convert hash to Base62 and take the first 8 characters
+                return BaseUrl + Base62Encode(hashBytes).Substring(0, 8);
             }
+        }
+
+        private static string Base62Encode(byte[] bytes)
+        {
+            const string chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+            StringBuilder result = new StringBuilder();
+            ulong value = BitConverter.ToUInt64(bytes, 0); // Convert first 8 bytes to a number
+
+            while (value > 0)
+            {
+                result.Insert(0, chars[(int)(value % 62)]);
+                value /= 62;
+            }
+
+            return result.ToString();
         }
     }
 }
